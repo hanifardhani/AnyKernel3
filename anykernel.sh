@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=Fortune Kernel | Let the Fortune come to you
+kernel.string=Fortune-EAS/HMP Kernel for Xiaomi MI 8 Lite a.k.a Platina
 do.devicecheck=1
 do.modules=0
 do.systemless=1
