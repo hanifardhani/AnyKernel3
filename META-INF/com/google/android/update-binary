@@ -11,15 +11,17 @@ ui_print() {
 }
 
 ui_print " ";
-ui_print " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ";
-ui_print "|              AURORA KERNEL              |";
-ui_print " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ";
+ui_print "           _  _   _ ___  ___  ___    _          ";
+ui_print "          /_\| | | | _ \/ _ \| _ \  /_\         ";
+ui_print "         / _ \ |_| |   / (_) |   / / _ \        ";
+ui_print "        /_/ \_\___/|_|_\____/|_|_\/_/ \_\       ";
+ui_print "                     KERNEL                     ";
 ui_print " ";
-ui_print "*******************************************";
-ui_print "*      Maintained by: Hanif Ardhani       *";
-ui_print "*******************************************";
+ui_print "************************************************";
+ui_print "*          Maintained by: Hanif Ardhani        *";
+ui_print "************************************************";
 ui_print " ";
-ui_print "   Preparing Aurora Kernel Installation    ";
+ui_print "       Preparing Aurora Kernel Installation      ";
 ui_print " ";
 
 BOOTMODE=false;
