@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=Aurora Kernel for Xiaomi MI 8 Lite a.k.a Platina
+kernel.string=JandaX-Aurora Kernel for Xiaomi MI 8 Lite
 do.devicecheck=1
 do.modules=0
 do.systemless=1
