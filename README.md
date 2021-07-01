@@ -43,7 +43,7 @@ __supported.versions=__ will match against ro.build.version.release from the cur
 
 __supported.patchlevels=__ will match against ro.build.version.security_patch from the current ROM's build.prop. It can be set as a closed or open-ended range of dates in the format YYYY-MM, whitespace optional, e.g. `2019-04 - 2019-06`, `2019-04 -` or `- 2019-06` where the last two examples show setting a minimum and maximum, respectively.
 
-`block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot` or `recovery`.
+`block=auto` instead of a direct block filepath enables detection of the device boot partition for use with broad, device non-specific zips. Also accepts specifically `boot`, `recovery` or `vendor_boot`.
 
 `is_slot_device=1` enables detection of the suffix for the active boot partition on slot-based devices and will add this to the end of the supplied `block=` path. Also accepts `auto` for use with broad, device non-specific zips.
 
@@ -52,6 +52,8 @@ __supported.patchlevels=__ will match against ro.build.version.security_patch fr
 `customdd="<arguments>"` may be added to allow specifying additional dd parameters for devices that need to hack their kernel directly into a large partition like mmcblk0, or force use of dd for flashing.
 
 `slot_select=active|inactive` may be added to allow specifying the target slot. If omitted the default remains `active`.
+
+`no_block_display=1` may be added to disable output of the detected final used partition+slot path for zips which choose to include their own custom output instead.
 
 ## // Command Methods ##
 ```
@@ -73,8 +75,8 @@ replace_string <file> <if search string> <original string> <replacement string> 
 replace_section <file> <begin search string> <end search string> <replacement string>
 remove_section <file> <begin search string> <end search string>
 insert_line <file> <if search string> <before|after> <line match string> <inserted line>
-replace_line <file> <line replace string> <replacement line>
-remove_line <file> <line match string>
+replace_line <file> <line replace string> <replacement line> <scope>
+remove_line <file> <line match string> <scope>
 prepend_file <file> <if search string> <patch file>
 insert_file <file> <if search string> <before|after> <line match string> <patch file>
 append_file <file> <if search string> <patch file>
@@ -97,7 +99,7 @@ __"if search string"__ is the string it looks for to decide whether it needs to 
 
 Similarly, __"line match string"__ and __"line replace string"__ are the search strings that locate where the modification needs to be made for those commands, __"begin search string"__ and __"end search string"__ are both required to select the first and last lines of the script block to be replaced for _replace_section_, and __"mount match name"__ and __"fs match type"__ are both required to narrow the _patch_fstab_ command down to the correct entry.
 
-__"scope"__ may be specified as __"global"__ to force all instances of the string targeted by _replace_string_ to be replaced. Omitted or set to anything else and it will perform the default first-match replacement.
+__"scope"__ may be specified as __"global"__ to force all instances of the string/line targeted by _replace_string_, _replace_line_ or _remove_line_ to be replaced/removed accordingly. Omitted or set to anything else and it will perform the default first-match action.
 
 __"before|after"__ requires you simply specify __"before"__ or __"after"__ for the placement of the inserted line, in relation to __"line match string"__.
 
@@ -138,9 +140,9 @@ Optionally moving ARM builds to tools/arm and putting x86 builds in tools/x86 wi
 
 1. Place final kernel build product, e.g. Image.gz-dtb or zImage to name a couple, in the zip root (any separate dt, dtb or recovery_dtbo, and/or dtbo should also go here for devices that require custom ones, each will fallback to the original if not included)
 
-2. Place any required ramdisk files in /ramdisk and module files in /modules (with the full path like /modules/system/lib/modules)
+2. Place any required ramdisk files in /ramdisk (/vendor_ramdisk for simple multi-partition vendor_boot support) and module files in /modules (with the full path like /modules/system/lib/modules)
 
-3. Place any required patch files (generally partial files which go with AK3 file editing commands) in /patch
+3. Place any required patch files (generally partial files which go with AK3 file editing commands) in /patch (/vendor_patch for simple multi-partition vendor_boot support)
 
 4. Modify the anykernel.sh to add your kernel's name, boot partition location, permissions for any added ramdisk files, and use methods for any required ramdisk modifications (optionally, also place banner and/or version files in the root to have these displayed during flash)
 
