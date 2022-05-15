@@ -160,7 +160,7 @@ unpack_ramdisk() {
   if [ "$comp" ]; then
     mv -f ramdisk.cpio ramdisk.cpio.$comp;
     $bin/magiskboot decompress ramdisk.cpio.$comp ramdisk.cpio;
-    if [ $? != 0 ]; then
+    if [ $? != 0 ] && $comp --help 2>/dev/null; then
       echo "Attempting ramdisk unpack with busybox $comp..." >&2;
       $comp -dc ramdisk.cpio.$comp > ramdisk.cpio;
     fi;
@@ -216,7 +216,7 @@ repack_ramdisk() {
   [ $((magisk_patched & 3)) -eq 1 ] && $bin/magiskboot cpio ramdisk-new.cpio "extract .backup/.magisk $split_img/.magisk";
   if [ "$comp" ]; then
     $bin/magiskboot compress=$comp ramdisk-new.cpio;
-    if [ $? != 0 ]; then
+    if [ $? != 0 ] && $comp --help 2>/dev/null; then
       echo "Attempting ramdisk repack with busybox $comp..." >&2;
       $comp -9c ramdisk-new.cpio > ramdisk-new.cpio.$comp;
       [ $? != 0 ] && packfail=1;
@@ -437,8 +437,14 @@ flash_generic() {
     if [ ! "$imgblock" ]; then
       abort "$1 partition could not be found. Aborting...";
     fi;
-    # TODO: add dynamic partition resizing using lptools_static instead of aborting
-    if [ "$(wc -c < $img)" -gt "$(wc -c < $imgblock)" ]; then
+    if [ "$path" == "/dev/block/mapper" ]; then
+      $bin/lptools_static remove $1_ak3;
+      $bin/lptools_static create $1_ak3 $(wc -c < $img) || abort "Creating $1_ak3 failed. Aborting...";
+      $bin/lptools_static unmap $1_ak3 || abort "Unmapping $1_ak3 failed. Aborting...";
+      $bin/lptools_static map $1_ak3 || abort "Mapping $1_ak3 failed. Aborting...";
+      $bin/lptools_static replace $1_ak3 $1$slot || abort "Replacing $1$slot failed. Aborting...";
+      imgblock=/dev/block/mapper/$1_ak3;
+    elif [ "$(wc -c < $img)" -gt "$(wc -c < $imgblock)" ]; then
       abort "New $1 image larger than $1 partition. Aborting...";
     fi;
     isro=$(blockdev --getro $imgblock 2>/dev/null);
@@ -470,10 +476,10 @@ flash_dtbo() { flash_generic dtbo; }
 
 ### write_boot (repack ramdisk then build, sign and write image, vendor_dlkm and dtbo)
 write_boot() {
-  flash_generic vendor_dlkm; # TODO: move below boot once resizing is supported
   repack_ramdisk;
   flash_boot;
   flash_generic vendor_boot; # temporary until hdr v4 can be unpacked/repacked fully by magiskboot
+  flash_generic vendor_dlkm;
   flash_generic dtbo;
 }
 ###
@@ -740,8 +746,12 @@ setup_ak() {
     ;;
   esac;
 
-  # automate simple multi-partition setup for boot_img_hdr_v3 + vendor_boot
+  # clean up any template placeholder files
   cd $home;
+  rm -f modules/system/lib/modules/placeholder patch/placeholder ramdisk/placeholder;
+  rmdir -p modules patch ramdisk;
+
+  # automate simple multi-partition setup for boot_img_hdr_v3 + vendor_boot
   if [ -e "/dev/block/bootdevice/by-name/vendor_boot$slot" -a ! -f vendor_setup ] && [ -f dtb -o -d vendor_ramdisk -o -d vendor_patch ]; then
     echo "Setting up for simple automatic vendor_boot flashing..." >&2;
     (mkdir boot-files;
