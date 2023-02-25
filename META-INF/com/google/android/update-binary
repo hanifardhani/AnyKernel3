@@ -38,6 +38,7 @@ find_slot() {
     [ "$slot" ] || slot=$($BB grep -o 'androidboot.slot=.*$' /proc/cmdline | $BB cut -d\  -f1 | $BB cut -d= -f2);
     [ "$slot" ] && slot=_$slot;
   fi;
+  [ "$slot" == "normal" ] && unset slot;
   [ "$slot" ] && echo "$slot";
 }
 setup_mountpoint() {
@@ -208,7 +209,7 @@ setup_env() {
   if [ ! "$(getprop 2>/dev/null)" ]; then
     getprop() {
       local propdir propfile propval;
-      for propdir in / /system_root /system /vendor /product /system_ext /odm; do
+      for propdir in / /system_root /system /vendor /product /product/etc /system_ext/etc /odm/etc; do
         for propfile in default.prop build.prop; do
           if [ "$propval" ]; then
             break 2;

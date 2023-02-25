@@ -686,10 +686,10 @@ patch_cmdline() {
   if ! grep -q "$1" $cmdfile; then
     cmdtmp=$(cat $cmdfile);
     echo "$cmdtmp $2" > $cmdfile;
-    sed -i -e 's;^ ;;' -e 's;  *; ;g' -e 's;[ \t]*$;;' $cmdfile;
+    sed -i -e 's;^[ \t]*;;' -e 's;  *; ;g' -e 's;[ \t]*$;;' $cmdfile;
   else
     match=$(grep -o "$1.*$" $cmdfile | cut -d\  -f1);
-    sed -i -e "s;${match};${2};" -e 's;^ ;;' -e 's;  *; ;g' -e 's;[ \t]*$;;' $cmdfile;
+    sed -i -e "s;${match};${2};" -e 's;^[ \t]*;;' -e 's;  *; ;g' -e 's;[ \t]*$;;' $cmdfile;
   fi;
   if [ -f "$home/cmdtmp" ]; then
     sed -i "s|^cmdline=.*|cmdline=$(cat $cmdfile)|" $split_img/header;
@@ -765,6 +765,7 @@ setup_ak() {
         [ "$slot" ] || slot=$(grep -o 'androidboot.slot=.*$' /proc/cmdline | cut -d\  -f1 | cut -d= -f2);
         [ "$slot" ] && slot=_$slot;
       fi;
+      [ "$slot" == "normal" ] && unset slot;
       if [ "$slot" ]; then
         if [ -d /postinstall/tmp -a ! "$slot_select" ]; then
           slot_select=inactive;
